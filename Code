@@ -1,0 +1,122 @@
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+import seaborn as sns
+import warnings
+warnings.filterwarnings('ignore')
+
+!pip install opendatasets --upgrade --quiet
+import opendatasets as od
+url='https://www.kaggle.com/competitions/customer-churn-prediction-2020/data'
+od.download(url)
+df=pd.read_csv('./customer-churn-prediction-2020/train.csv')
+df.head()
+df.info()
+df.describe()
+df.shape
+df[df['churn']=='no'].churn.count()
+df['churn']
+df.columns
+def clean_Data(df):
+    df['total_net_minutes'] = df['total_day_minutes'] + df['total_eve_minutes'] + df['total_night_minutes']
+    df['total_net_calls'] = df['total_day_calls'] + df['total_eve_calls'] + df['total_night_calls']
+    df['total_net_charge'] = df['total_day_charge'] + df['total_eve_charge'] + df['total_night_charge']
+
+
+    df['voice_mail_plan'] = df['voice_mail_plan'].map({'yes': 1, 'no': 0})
+    df['international_plan'] = df['international_plan'].map({'yes': 1, 'no': 0})
+
+    df.drop(columns= ['state', 'area_code'], inplace= True)
+    #df.area_code = pd.Categorical(df.area_code).codes
+
+
+
+    df.drop(columns=['total_day_charge', 'total_eve_charge','total_night_charge',
+                    'total_day_calls','total_eve_calls', 'total_night_calls', 'total_day_minutes',
+                     'total_eve_minutes', 'total_night_minutes'], inplace=True)
+    return df
+
+df.columns
+from sklearn.model_selection import train_test_split
+
+X = df.drop(columns= ['churn'])
+y = df['churn']
+
+x_train, x_val, y_train, y_val = train_test_split(X, y , test_size=.25, stratify= y, random_state=1)
+y_train.value_counts(), y_val.value_counts()
+
+x_train  = clean_Data(x_train)
+y_train = pd.Categorical(y_train).codes
+
+x_val  = clean_Data(x_val)
+y_val= pd.Categorical(y_val).codes
+
+print(df.international_plan.value_counts())
+df.head()
+import seaborn as sns
+sns.set_style('dark')
+temp = x_train[['account_length', 'international_plan','voice_mail_plan', 'number_vmail_messages', 
+           'total_net_minutes','total_net_calls', 'total_net_charge','total_intl_minutes',
+       'total_intl_calls', 'total_intl_charge','number_customer_service_calls' ]]
+temp.hist(bins=50,figsize=(20,20),color='grey');
+
+Logistic Regression Model
+
+from sklearn.linear_model import LogisticRegression
+
+lr  = LogisticRegression(max_iter=300,)
+lr .fit(x_train,y_train )
+lr .score(x_train, y_train)
+pre = lr .predict(x_val)
+score = [i for i, j in zip(pre, y_val) if i == j]
+
+score = len(score)/len(y_val)
+score
+
+Random Forest Classifier
+
+from sklearn.ensemble import RandomForestClassifier
+clf = RandomForestClassifier()
+clf.fit(x_train,y_train )
+clf.score(x_train, y_train)
+pre = clf.predict(x_val)
+score = [i for i, j in zip(pre, y_val) if i == j]
+
+score = len(score)/len(y_val)
+score
+
+Gradient Boosting Classifier
+
+from sklearn.ensemble import GradientBoostingClassifier
+
+xg = GradientBoostingClassifier(learning_rate=0.01, n_estimators=400,max_depth=13)
+xg.fit(x_train,y_train )
+xg.score(x_train, y_train)
+pre = xg.predict(x_val)
+score = [i for i, j in zip(pre, y_val) if i == j]
+
+score = len(score)/len(y_val)
+score
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
